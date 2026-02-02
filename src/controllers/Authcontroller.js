@@ -2,7 +2,7 @@ import supabase from '../config/supabase.js';
 
 /**
  * POST /api/auth/signup
- * Create a new user account
+ * Create a new user account.
  */
 async function signup(req, res) {
   try {
