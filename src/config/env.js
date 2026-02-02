@@ -1,12 +1,21 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from the server root
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Only load local .env when NOT on Railway
+// Railway injects vars into process.env automatically.
+if (
+  !process.env.RAILWAY_ENVIRONMENT &&
+  fs.existsSync(path.resolve(__dirname, '../../.env'))
+) {
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+} else {
+  dotenv.config(); // harmless if no .env
+}
 
 const config = {
   PORT: process.env.PORT || 3001,
