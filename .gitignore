@@ -1,0 +1,22 @@
+node_modules/
+.env
+keys/
+tmp/
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Google Cloud keys
+keys/
+*.json
+
+# Temporary files
+tmp/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
