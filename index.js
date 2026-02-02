@@ -11,7 +11,10 @@ const PORT = config.PORT;
 // CORS — allows our React frontend to talk to this server
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Vite dev server
+    origin: [
+      'http://localhost:5173', // Local development
+      'https://notivate.vercel.app', // Production frontend
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
