@@ -11,7 +11,6 @@ node_modules/
 
 # Google Cloud keys
 keys/
-*.json
 
 # Temporary files
 tmp/
