@@ -1,21 +1,12 @@
 import dotenv from 'dotenv';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Only load local .env when NOT on Railway
-// Railway injects vars into process.env automatically.
-if (
-  !process.env.RAILWAY_ENVIRONMENT &&
-  fs.existsSync(path.resolve(__dirname, '../../.env'))
-) {
-  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-} else {
-  dotenv.config(); // harmless if no .env
-}
+// Load .env from the server root
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const config = {
   PORT: process.env.PORT || 3001,
@@ -26,6 +17,11 @@ const config = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   SUPABASE_URL: process.env.SUPABASE_URL,
   SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+  STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
+  STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
 };
 
 // Validate that required env vars are set

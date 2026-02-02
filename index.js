@@ -4,6 +4,7 @@ import config from './src/config/env.js';
 import uploadRouter from './src/routes/upload.js';
 import authRouter from './src/routes/authRoutes.js';
 import notesRouter from './src/routes/notesRoutes.js';
+import stripeRouter from './src/routes/stripeRoutes.js';
 
 const app = express();
 const PORT = config.PORT;
@@ -20,13 +21,17 @@ app.use(
   }),
 );
 
-// Parse JSON bodies
+// Stripe webhook needs raw body - must come BEFORE express.json()
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
+// Parse JSON bodies for all other routes
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/stripe', stripeRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
