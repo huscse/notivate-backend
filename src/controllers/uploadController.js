@@ -38,18 +38,9 @@ async function uploadAndTransform(req, res) {
 
     console.log('✅ Successfully transformed notes: ' + studyGuide.title);
 
-    // Step 3: Increment usage AFTER successful transform (free users only)
-    console.log('🔎 Checking req.user:', JSON.stringify(req.user));
+    // Step 3: Increment usage after successful transform (free users only)
     if (req.user && req.user.subscriptionTier !== 'premium') {
-      console.log('📊 About to call incrementUsage for user: ' + req.user.id);
-      try {
-        await incrementUsage(req.user.id);
-        console.log('📊 incrementUsage completed');
-      } catch (incError) {
-        console.error('📊 incrementUsage threw:', incError);
-      }
-    } else {
-      console.log('⏭️ Skipping incrementUsage - user is premium or missing');
+      await incrementUsage(req.user.id);
     }
 
     // Step 4: Return the study guide
@@ -65,7 +56,7 @@ async function uploadAndTransform(req, res) {
         error.message || 'Something went wrong while processing your notes.',
     });
   } finally {
-    // Always clean up the temp file.
+    // Always clean up the temp file
     if (filePath) {
       cleanup.deleteFile(filePath);
     }
