@@ -17,7 +17,7 @@ async function uploadAndTransform(req, res) {
         .json({ error: 'No image uploaded. Please include an image file.' });
     }
 
-    console.log(`📥 Received upload: ${req.file.originalname}`);
+    console.log('📥 Received upload: ' + req.file.originalname);
 
     // Step 1: Extract text from the image using Google Vision OCR
     console.log('🔍 Running OCR...');
@@ -30,17 +30,26 @@ async function uploadAndTransform(req, res) {
       });
     }
 
-    console.log(`📝 OCR extracted ${rawText.length} characters`);
+    console.log('📝 OCR extracted ' + rawText.length + ' characters');
 
     // Step 2: Transform the raw text into a study guide using GPT-4
     console.log('✨ Transforming notes with AI...');
     const studyGuide = await transformService.transformNotes(rawText);
 
-    console.log(`✅ Successfully transformed notes: "${studyGuide.title}"`);
+    console.log('✅ Successfully transformed notes: ' + studyGuide.title);
 
     // Step 3: Increment usage AFTER successful transform (free users only)
+    console.log('🔎 Checking req.user:', JSON.stringify(req.user));
     if (req.user && req.user.subscriptionTier !== 'premium') {
-      await incrementUsage(req.user.id);
+      console.log('📊 About to call incrementUsage for user: ' + req.user.id);
+      try {
+        await incrementUsage(req.user.id);
+        console.log('📊 incrementUsage completed');
+      } catch (incError) {
+        console.error('📊 incrementUsage threw:', incError);
+      }
+    } else {
+      console.log('⏭️ Skipping incrementUsage - user is premium or missing');
     }
 
     // Step 4: Return the study guide
