@@ -56,7 +56,7 @@ async function uploadAndTransform(req, res) {
         error.message || 'Something went wrong while processing your notes.',
     });
   } finally {
-    // Always clean up the temp file
+    // Always clean up the temp file.
     if (filePath) {
       cleanup.deleteFile(filePath);
     }
