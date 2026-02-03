@@ -69,7 +69,7 @@ async function checkUsageLimit(req, res, next) {
     const FREE_TIER_LIMIT = 5;
     const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
 
-    // Get or create usage record for this month
+    // Get usage record for this month
     const { data: usage, error } = await supabase
       .from('usage_tracking')
       .select('*')
@@ -83,7 +83,7 @@ async function checkUsageLimit(req, res, next) {
     }
 
     if (!usage) {
-      // First transform this month - create record
+      // No record yet this month — first transform is fine
       req.usageAllowed = true;
       req.currentUsage = 0;
       req.usageLimit = FREE_TIER_LIMIT;
@@ -112,35 +112,57 @@ async function checkUsageLimit(req, res, next) {
 }
 
 /**
- * Increment usage counter after successful transform
+ * Increment usage counter after a successful transform.
+ * Called directly from the controller — not as middleware.
  */
 async function incrementUsage(userId) {
   try {
-    const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
 
-    // Upsert usage record
-    const { error } = await supabase.from('usage_tracking').upsert(
-      {
-        user_id: userId,
-        month: currentMonth,
-        transforms_count: 1,
-      },
-      {
-        onConflict: 'user_id,month',
-        // Increment if exists, set to 1 if new
-      },
-    );
+    // Check if a row already exists for this user + month
+    const { data: existing, error: selectError } = await supabase
+      .from('usage_tracking')
+      .select('id, transforms_count')
+      .eq('user_id', userId)
+      .eq('month', currentMonth)
+      .single();
 
-    if (error) {
-      // If record exists, manually increment
-      await supabase.rpc('increment_usage', {
-        p_user_id: userId,
-        p_month: currentMonth,
-      });
+    if (selectError && selectError.code !== 'PGRST116') {
+      throw selectError;
+    }
+
+    if (existing) {
+      // Row exists — increment the count
+      const { error: updateError } = await supabase
+        .from('usage_tracking')
+        .update({ transforms_count: existing.transforms_count + 1 })
+        .eq('user_id', userId)
+        .eq('month', currentMonth);
+
+      if (updateError) throw updateError;
+
+      console.log(
+        `📊 Usage incremented for ${userId}: ${
+          existing.transforms_count + 1
+        }/${currentMonth}`,
+      );
+    } else {
+      // No row yet — insert with count = 1
+      const { error: insertError } = await supabase
+        .from('usage_tracking')
+        .insert({
+          user_id: userId,
+          month: currentMonth,
+          transforms_count: 1,
+        });
+
+      if (insertError) throw insertError;
+
+      console.log(`📊 Usage record created for ${userId}: 1/${currentMonth}`);
     }
   } catch (error) {
     console.error('Failed to increment usage:', error);
-    // Don't fail the request if usage tracking fails
+    // Don't throw — usage tracking failure shouldn't break the transform
   }
 }
 

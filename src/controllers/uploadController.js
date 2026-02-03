@@ -1,6 +1,7 @@
 import ocrService from '../services/ocr.js';
 import transformService from '../services/transform.js';
 import cleanup from '../utils/cleanup.js';
+import { incrementUsage } from '../middleware/Authmiddleware.js';
 
 /**
  * POST /api/upload
@@ -37,7 +38,12 @@ async function uploadAndTransform(req, res) {
 
     console.log(`✅ Successfully transformed notes: "${studyGuide.title}"`);
 
-    // Step 3: Return the study guide
+    // Step 3: Increment usage AFTER successful transform (free users only)
+    if (req.user && req.user.subscriptionTier !== 'premium') {
+      await incrementUsage(req.user.id);
+    }
+
+    // Step 4: Return the study guide
     res.json({
       success: true,
       rawText,
@@ -45,12 +51,10 @@ async function uploadAndTransform(req, res) {
     });
   } catch (error) {
     console.error('❌ Upload error:', error.message);
-    res
-      .status(500)
-      .json({
-        error:
-          error.message || 'Something went wrong while processing your notes.',
-      });
+    res.status(500).json({
+      error:
+        error.message || 'Something went wrong while processing your notes.',
+    });
   } finally {
     // Always clean up the temp file
     if (filePath) {
