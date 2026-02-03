@@ -4,6 +4,21 @@ import config from '../config/env.js';
 const openai = new OpenAI({ apiKey: config.OPENAI_API_KEY });
 
 /**
+ * Strips markdown code block wrappers if GPT returns them
+ * e.g. ```json { ... } ``` → { ... }
+ */
+function cleanJsonResponse(text) {
+  let cleaned = text.trim();
+
+  // Remove ```json ... ``` or ``` ... ``` wrapper
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+  }
+
+  return cleaned.trim();
+}
+
+/**
  * Transforms raw OCR text into a structured study guide using GPT-4
  * @param {string} rawText - The raw text extracted from the notes image
  * @returns {object} A structured study guide object
@@ -61,14 +76,16 @@ Guidelines:
           content: prompt,
         },
       ],
+      response_format: { type: 'json_object' },
       max_tokens: 2000,
       temperature: 0.3,
     });
 
     const content = response.choices[0].message.content;
 
-    // Parse the JSON response
-    const studyGuide = JSON.parse(content);
+    // Clean any markdown wrapper just in case, then parse
+    const cleaned = cleanJsonResponse(content);
+    const studyGuide = JSON.parse(cleaned);
     return studyGuide;
   } catch (error) {
     if (error instanceof SyntaxError) {
