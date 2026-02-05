@@ -15,6 +15,7 @@ app.use(
     origin: [
       'http://localhost:5173', // Local development
       'https://notivate.vercel.app', // Production frontend
+      'https://www.notivate.it.com',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
