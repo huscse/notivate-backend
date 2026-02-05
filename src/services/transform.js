@@ -45,10 +45,11 @@ Transform this into a beautifully structured study guide. Return ONLY a valid JS
       "bullets": ["Key point 1", "Key point 2"]
     }
   ],
-  "diagramSuggestions": [
+  "diagrams": [
     {
-      "type": "flowchart or comparison or timeline",
-      "description": "What this diagram should show and why it helps understanding"
+      "type": "flowchart or mindmap or timeline or sequence",
+      "title": "Clear diagram title",
+      "mermaidCode": "Valid Mermaid.js syntax (see examples below)"
     }
   ],
   "quizQuestions": [
@@ -63,10 +64,52 @@ Transform this into a beautifully structured study guide. Return ONLY a valid JS
 Guidelines:
 - Create 2-4 sections based on the content
 - Extract 3-5 quiz questions at varying difficulty levels
-- Suggest 1-2 diagrams that would help visualize the content
+- Generate 1-2 diagrams using VALID Mermaid.js syntax to visualize the content
 - Make the content clear and easy to understand
 - Fix any OCR errors or garbled text
-- If the text is too garbled to understand, do your best and note any uncertain parts`;
+- If the text is too garbled to understand, do your best and note any uncertain parts
+
+DIAGRAM EXAMPLES (Choose the type that best fits the content):
+
+FLOWCHART (for processes, steps, decisions):
+graph TD
+    A[Start] --> B{Decision?}
+    B -->|Yes| C[Step 1]
+    B -->|No| D[Step 2]
+    C --> E[End]
+    D --> E
+
+MINDMAP (for concepts, hierarchies, relationships):
+mindmap
+  root((Central Concept))
+    Topic 1
+      Subtopic A
+      Subtopic B
+    Topic 2
+      Subtopic C
+      Subtopic D
+
+TIMELINE (for chronological events, history):
+timeline
+    title Event Timeline
+    2020 : Event 1 : Details
+    2021 : Event 2 : Details
+    2022 : Event 3 : Details
+
+SEQUENCE (for interactions, processes with actors):
+sequenceDiagram
+    participant A as Person 1
+    participant B as Person 2
+    A->>B: Action 1
+    B->>A: Response
+    A->>B: Action 2
+
+IMPORTANT: 
+- Use actual \\n for newlines in mermaidCode, not literal newlines
+- Keep node labels SHORT (under 20 chars)
+- Use simple, clear relationships
+- Test that your Mermaid syntax is valid
+- If content doesn't fit a diagram well, it's okay to skip diagrams array entirely`;
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -77,7 +120,7 @@ Guidelines:
         },
       ],
       response_format: { type: 'json_object' },
-      max_tokens: 2000,
+      max_tokens: 2500, // Increased to accommodate diagrams
       temperature: 0.3,
     });
 
